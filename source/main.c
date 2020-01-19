@@ -12,77 +12,120 @@
 #include "simAVRHeader.h"
 #endif
 
-unsigned char SetBit(unsigned char x, unsigned char k, unsigned char b) {
-   return (b ?  (x | (0x01 << k))  :  (x & ~(0x01 << k)) );
-              //   Set bit to 1           Set bit to 0
-}
+unsigned char C = 0x07; // count is initialized to 7
 
-unsigned char GetBit(unsigned char x, unsigned char k) {
-   return ((x & (0x01 << k)) != 0);
-}
-
-unsigned char B = 0x01;         //B0 is initially on (LED)
-//unsigned char A0 = PINA; //reads input A0 (button)
-//#define A0 (PINA & 0x01)
-
-enum States { Start, onstate, offstate} State;
+enum States {start, init, increment, decrement, zero} State;
 
 void tickButton() {
-	unsigned char A0 = PINA & 0x01;
-    switch(State) {
-	case Start:         // start of SM
-	    State = onstate; // first state, PB0 is ON
+	unsigned char A = PINA & 0x03; //set A to pins A1 A0
+    switch(State) { //transitions
+	case start:          // start of SM
+	    State = init; // first state, PB0 is ON
 	    break;
-	case onstate:
-	    if (A0) {      // if button pressed, go to state2
-		State = offstate;
-	    }	
-	    else {         // if no button pressed, stay at state1
-		State = onstate;
+	case init:
+		if (A == 0x01) { //goes to increment if A0 pressed
+			State = increment;
+		}
+
+		else if (A == 0x02) {  // goes to decrement if A1 pressed
+			State = decrement;
+		}
+
+		else if (A == 0x03) { // sets C to 0 when both buttons are pressed
+			State = zero;
+		}
+
+		else {
+			State = init;
+		}
+		break;
+
+	case increment: //using init as a wait state
+	    /*if (A == 0x01 && C < 9) {      // if button pressed, go to state2
+			State = increment;
 	    }
-	    break;
-	case offstate:
-	    if (A0) {
-		State = onstate;
-	    } 
-	    else {
-		State = offstate;
+	    if (A == 0x02){
+	    	State = decrement;
 	    }
+
+	    if (A == 0x03){
+	    	State == zero;
+	    }
+
+	    if (A == 0x01 && C == 9){
+	    	State == stop;
+	    }*/
+
+	    State = init;	
+	    
 	    break;
-	default:
-	    State = Start;
+	case decrement: //using init as a wait state
+	    /*if (A == 0x02 && C > 0) {      // if button pressed, go to state2
+			State = decrement;
+	    }
+	    if (A == 0x01){
+	    	State = increment;
+	    }
+
+	    if (A == 0x03){
+	    	State = zero;
+	    }
+
+	    if (A == 0x02 && C == 0){
+	    	State = stop;
+	    } */
+
+		State = init;
 	    break;
-    }
+
+	case zero: //using init as a wait state
+		/*if (A == 0x03){
+			State = zero;
+		}
+
+		else if (A == 0x01){
+			State = increment;
+		}
+		else {
+			State = zero;
+		} */
+		State = init;
+		break;
     
-    switch(State) {
-	case Start:
-	    //B = 0x01;
+    switch(State) { //state actions
+	case start:
+		//C = 0x07;
 	    break;
-	case onstate:
-	    //B = SetBit(B, 0, 1);
-	    //B = SetBit(B, 1, 0);
-		B = 0x01;
+	case init:
+		break;
+	case increment:
+		if (C < 9){
+			C = C + 1;
+		}
 	    break;
-	case offstate: // WHY CANT WE LEAVE STATE2222222
-	    //B = SetBit(B, 0, 0);
-        //B = SetBit(B, 1, 1);
-		B = 0x02;
+	case decrement:
+		if (C > 0){
+			C = C - 1;
+		}
 	    break;    
+	case zero:
+		C = 0x00;
+
     }    
 
+}
 }
 
 int main(void) {
 	DDRA = 0x00; PORTA = 0xFF;
-	DDRB = 0xFF; PORTB = 0x00;
+	DDRC = 0xFF; PORTC = 0x00;
 	
+	C = 0x07;
+	State = start;   // initial call
 	
-	State = Start;   // initial call
-	
-    while(1) {
-	tickButton();	
-	PORTB = B;
-       B = 0x01;
+	while(1) {
+		tickButton();	
+		PORTC = C;
 	}
     
     return 1;
