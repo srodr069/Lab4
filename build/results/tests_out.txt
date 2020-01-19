@@ -1,9 +1,29 @@
-Breakpoint 1 at 0x1ac: file source/main.c, line 124.
+Breakpoint 1 at 0x1b2: file source/main.c, line 126.
 Note: automatically using hardware breakpoints for read-only addresses.
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x0000012a in tickButton () at source/main.c:26
+26			if (A == 0x01) { //goes to increment if A0 pressed
 ======================================================
 Running all tests..."
 
-"PINA: 0x01, 0x00 => PORTB: 0x02, 
- State: Start => State: offstate "...test/tests.gdb:34: Error in sourced command file:
+"PINA: 0x01, 0x02, 0x02 => PORTC: 0x06, 
+ State: Start => State: offstate "...
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x000001ac in main () at source/main.c:124
+124		State = start;   // initial call
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x000000f4 in tickButton () at source/main.c:20
+20		unsigned char A = PINA & 0x03; //set A to pins A1 A0
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+tickButton () at source/main.c:30
+30			else if (A == 0x02) {  // goes to decrement if A1 pressed
+
+	Expected 0x06 
+	PORTC '0x800028:	0x07
+"PINA: 0x00, 0x00 => PORTB: 0x01 
+ State: Start => State: onstate"...test/tests.gdb:46: Error in sourced command file:
 No symbol "Start" in current context.
 Remote doesn't know how to detach

@@ -30,14 +30,16 @@ echo Running all tests..."\n\n
 
 # Add tests below
 
-test "PINA: 0x01, 0x00 => PORTB: 0x02, \n State: Start => State: offstate "
-set State  = Start
+test "PINA: 0x01, 0x02, 0x02 => PORTC: 0x06, \n State: Start => State: offstate "
+#set State  = start
 setPINA 0x01
 continue 2
-setPINA 0x00
+setPINA 0x02
 continue 2
-expectPORTB 0x02
-expect State offstate
+setPINA 0x02
+continue 2
+expectPORTC 0x06
+#expect State init
 checkResult
 
 test "PINA: 0x00, 0x00 => PORTB: 0x01 \n State: Start => State: onstate"
