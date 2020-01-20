@@ -29,7 +29,7 @@ echo Running all tests..."\n\n
 
 
 test "PINA: 0x04, 0x00, 0x02 => PORTB: 0x01, State: Lock"
-set State = Start
+#set State = Start
 setPINA 0x04
 continue 2
 setPINA 0x00
