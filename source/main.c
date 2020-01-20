@@ -12,135 +12,90 @@
 #include "simAVRHeader.h"
 #endif
 
-unsigned char C = 0x07; // count is initialized to 7
+unsigned char SetBit(unsigned char x, unsigned char k, unsigned char b) {
+   return (b ?  (x | (0x01 << k))  :  (x & ~(0x01 << k)) );
+           
+}
 
-enum States {start, init, increment, decrement, zero} State;
-#define A (PINA & 0x03)
+unsigned char GetBit(unsigned char x, unsigned char k) {
+   return ((x & (0x01 << k)) != 0);
+}
+
+unsigned char B = 0x00;        
+#define A (PINA & 0x87)  
+
+enum States { Start, Init, poundPress, Release, yPress, Lock } State;
 
 void tickButton() {
-	//unsigned char A = PINA & 0x03; //set A to pins A1 A0
-    switch(State) { //transitions
-		case start:
-			C = 0x07;          // start of SM
-	    	State = init; // first state, PB0 is ON
-	    	break;
-		case init:
-			if (A == 0x01) { //goes to increment if A0 pressed
-				State = increment;
-			}
-
-			else if (A == 0x02) {  // goes to decrement if A1 pressed
-				State = decrement;
-			}
-
-			else if (A == 0x03) { // sets C to 0 when both buttons are pressed
-				State = zero;
-			}
-
-			else {
-				State = init;
-			}
-			break; 
-
-		case increment: //using init as a wait state
-	    /*if (A == 0x01 && C < 9) {      // if button pressed, go to state2
-			State = increment;
+    switch(State) {
+        case Start:
+	    B = 0x00;
+	    State = Init;
+	    break;
+	case Init:
+	    if (A == 0x04) {
+		State = poundPress; 
 	    }
-	    if (A == 0x02){
-	    	State = decrement;
+	    else {
+		State = Init;
 	    }
-
-	    if (A == 0x03){
-	    	State == zero;
+	    break;
+	case poundPress:
+	    if (A == 0x00) {
+		State = Release;
 	    }
-
-	    if (A == 0x01 && C == 9){
-	    	State == stop;
-	    }*/
-
-		    State = init;	
-		    
-	    	break;
-		
-		case decrement: //using init as a wait state
-	    /*if (A == 0x02 && C > 0) {      // if button pressed, go to state2
-			State = decrement;
+	    else {
+	        State = Init;
 	    }
-	    if (A == 0x01){
-	    	State = increment;
+	    break;
+	case Release:
+            if (A == 0x02) {
+                State = yPress;
+            }
+	    else {
+		State = Init;
 	    }
-
-	    if (A == 0x03){
-	    	State = zero;
-	    }
-
-	    if (A == 0x02 && C == 0){
-	    	State = stop;
-	    } */
-
-			State = init;
-	   		break;
-
-		case zero: //using init as a wait state
-		/*if (A == 0x03){
-			State = zero;
-		}
-
-		else if (A == 0x01){
-			State = increment;
-		}
-		else {
-			State = zero;
-		} */
-			State = init;
-			break;
-		default:
-			State = start;
-	}
+	    break;
+	case yPress:
+	    State = Lock;
+	    break;
+	case Lock:
+	    State = Lock;
+	    break;
+        default:
+	    State = Start;
+	    break;
+    }
     
-    switch(State) { //state actions
-		case start:
-		//C = 0x07;
-	    	break;
-		case init:
-			break;
-		case increment:
-			if (C < 0x09){
-				C = C + 1;
-			}
-
-			else {
-				C = 0x09;
-			}
-	    	break;
-		case decrement:
-			if (C > 0){
-				C = C - 1;
-			}
-			else {
-				C = 0x00;
-			}
-	    	break;    
-		case zero:
-			C = 0x00;
-			break;
-		default:
-			break;
+    switch(State) {
+	case Start:
+	    break;
+	case Init:
+	    break;
+	case poundPress:
+            break;
+	case Release:
+            break;
+	case yPress:
+	    break;
+	case Lock:
+	    B = 0x01;
+	    break;
+	default:
+	    break;	    
     }    
-
-
 }
 
 int main(void) {
-	DDRA = 0x00; PORTA = 0xFF;
-	DDRC = 0xFF; PORTC = 0x00;
+	DDRA = 0x00;
+	DDRB = 0xFF;
+	PORTA = 0xFF;
+	PORTB = 0x00;
+	State = Start;  
 	
-	//C = 0x07;
-	State = start;   // initial call
-	
-	while(1) {
-		tickButton();	
-		PORTC = C;
+	while (1) {
+	tickButton();	
+	PORTB = B;
 	}
     
     return 1;
