@@ -24,7 +24,7 @@ unsigned char GetBit(unsigned char x, unsigned char k) {
 unsigned char B = 0x00;        
 #define A (PINA & 0x87)  
 
-enum States { Start, Init, poundPress, Release, yPress, Lock } State;
+enum States { Start, Init, poundPress, Release, yPress, xPress, Lock } State;
 
 void tickButton() {
     switch(State) {
@@ -36,12 +36,21 @@ void tickButton() {
 	    if (A == 0x04) {
 		State = poundPress; 
 	    }
+	    else if(A == 0x80) {
+		State = Lock;
+	    }
 	    else {
 		State = Init;
 	    }
 	    break;
 	case poundPress:
-	    if (A == 0x00) {
+	    if (A == 0x04) {
+		State = poundPress;
+	    }
+	    else if(A == 0x80) {
+                State = Lock;
+            }
+	    else if (A == 0x00) {
 		State = Release;
 	    }
 	    else {
@@ -49,9 +58,21 @@ void tickButton() {
 	    }
 	    break;
 	case Release:
-            if (A == 0x02) {
+	    if (A == 0x00) {
+		State = Release;
+	    }
+	    else if(A == 0x80) {
+                State = Lock;
+            }
+	    else if (A == 0x01) {
+		State = xPress;
+	    }
+            else if (A == 0x02) {
                 State = yPress;
             }
+	    else if (A == 0x04) {
+		State = poundPress;
+	    }
 	    else {
 		State = Init;
 	    }
@@ -59,6 +80,20 @@ void tickButton() {
 	case yPress:
 	    State = Lock;
 	    break;
+	case xPress:
+            if (A == 0x01) {
+                State = xPress;
+            }
+            else if(A == 0x80) {
+                State = Lock;
+            }
+            else if (A == 0x00) {
+                State = Release;
+            }
+            else {
+                State = Init;
+            }
+            break;
 	case Lock:
 	    State = Lock;
 	    break;
@@ -79,7 +114,12 @@ void tickButton() {
 	case yPress:
 	    break;
 	case Lock:
-	    B = 0x01;
+	    if (A == 0x02) {
+		B = 0x01;
+	    }
+	    else if (A == 0x80) {
+		B = 0x00;
+	    }
 	    break;
 	default:
 	    break;	    
